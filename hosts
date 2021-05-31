@@ -5,6 +5,7 @@ target3 ansible_host=192.168.33.103 ansible_user=vagrant ansible_ssh_private_key
 
 [ubuntu]
 target1
+target2
 
 [centos]
 target3

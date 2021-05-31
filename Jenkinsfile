@@ -13,6 +13,29 @@ pipeline {
         sh 'docker build -t chris/hashservice .'
       }
     }
-  
+
+    stage('run') {
+      steps {
+        sh 'docker run -d --name hs -p 3000:3000 --rm chris/hashservice'
+      }
+    }
+
+    stage('test and stop') {
+      steps {
+        sh 'sleep 10'
+        sh 'curl http://192.168.33.20:3000/md5/hello'
+        //sh "docker exec -i hs sh -c 'curl http://localhost:3000/md5/hello | grep 5d41402abc4b2a76b9719d911017c592'"
+        sh 'echo $?'
+        sh 'sleep 10'
+        sh 'docker stop hs'
+      }
+    }
+
+    stage('deploy') {
+      steps {
+        sh 'ansible-playbook -i hosts playbook.yml'
+      }
+    }
+
   } 
 }
