@@ -1,17 +1,19 @@
 -
   name: deploy to ubuntus
   hosts: ubuntu
+  vars:
+    - targetdir: /home/jenkins/hashservice/
 
   tasks:
     - name: create build directory
       file:
-        path: /home/vagrant/hashservice/
+        path: "{{targetdir}}"
         state: directory
 
     - name: copy Dockerfile
       copy:
         src: ./{{item}}
-        dest: /home/vagrant/hashservice/
+        dest: "{{targetdir}}"
       with_items:
         - 'Dockerfile'
         - 'package.json'
@@ -19,7 +21,7 @@
 
     - name: build image
       docker_image:
-        path: /home/vagrant/hashservice
+        path: "{{targetdir}}"
         name: hashservice
         tag: v1
 
@@ -65,12 +67,6 @@
         name: httpd
         state: started
     
-    # - name: change user
-    #   become: yes
-    #   file:
-    #     dest: /var/www/html
-    #     owner: vagrant
-
     - name: Change apache doc root perms
       become: yes
       file:
