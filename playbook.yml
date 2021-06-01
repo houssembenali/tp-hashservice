@@ -1,32 +1,32 @@
 -
-  name: deploy to ubuntus
+  name: Deploy to ubuntus
   hosts: ubuntu
   vars:
-    - targetdir: /home/jenkins/hashservice/
+    - TARGET_DIR: /home/jenkins/hashservice/
 
   tasks:
-    - name: create build directory
+    - name: Create build directory
       file:
-        path: "{{targetdir}}"
+        path: "{{TARGET_DIR}}"
         state: directory
 
-    - name: copy Dockerfile
+    - name: Copy Dockerfile + app files
       copy:
         src: ./{{item}}
-        dest: "{{targetdir}}"
+        dest: "{{TARGET_DIR}}"
       with_items:
         - 'Dockerfile'
         - 'package.json'
         - 'index.js'
 
-    - name: build image
+    - name: Build docker image
       docker_image:
-        path: "{{targetdir}}"
+        path: "{{TARGET_DIR}}"
         name: hashservice
         tag: v1
 
-    - name: create container
-      tags: create_container
+    - name: Run containers
+      tags: run_containers
       docker_container:
         name: "{{item.name}}"
         image: hashservice:v1
@@ -41,29 +41,22 @@
         - { name: hashservice3, port: 3003 }
 
 - 
-  name: deploy to centos
+  name: Deploy to centos
   tags: centos
   hosts: centos
   vars:
     - API_URL: '192.168.33.101:3001'
 
   tasks:
-
-    # - name: get front app
-    #   tags: get_front_app
-    #   get_url: 
-    #     url: https://opusidea-training.s3.eu-west-3.amazonaws.com/divers/hashservice-client.zip
-    #     dest: /home/vagrant
-
     - name: Install softs
-      tags: install_soft
+      tags: install_softs
       become: yes
       yum:
         name: "{{item}}"
         state: present
       loop: ['unzip', 'httpd']
     
-    - name: Start service httpd, if not started
+    - name: Start httpd
       become: yes
       service:
         name: httpd
@@ -84,19 +77,19 @@
         dest: /home/vagrant
         remote_src: yes
 
-    - name: replace IP
+    - name: Replace api url
       replace:
         path: /home/vagrant/hashservice-client/index.js
         regexp: 'localhost:3000'
         replace: "{{API_URL}}"
 
-    - name: cp front files to apache doc root
+    - name: Copy app files to apache doc root
       command: cp /home/vagrant/hashservice-client/{{item}} /var/www/html
       with_items:
         - 'index.html'
         - 'index.js'
 
-    - name: disable selinux
+    - name: Disable selinux
       become: yes
       command: setenforce 0
     
