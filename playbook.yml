@@ -45,7 +45,7 @@
   tags: centos
   hosts: centos
   vars:
-    - API_URL: '192.168.33.101:3001'
+    - API_URL: '192.168.33.102:3002'
 
   tasks:
     - name: Install softs
